@@ -275,14 +275,17 @@ int main(int argc, char** argv)
       if (depth_image != nullptr)
       {
         k4a_image_release(depth_image);
+        depth_image = nullptr;
       }
       if (color_image != nullptr)
       {
         k4a_image_release(color_image);
+        color_image = nullptr;
       }
       if (capture != nullptr)
       {
         k4a_capture_release(capture);
+        capture = nullptr;
       }
       ros::spinOnce();
     }
