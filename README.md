@@ -5,10 +5,10 @@ Basic ROS driver for K4A devices
 
 1. Install [K4A SDK](https://docs.microsoft.com/en-us/azure/Kinect-dk/sensor-sdk-download)
 
-2. Add the following to `/etc/udev/rules.d/90-k4a.rules
+2. Add the following to `/etc/udev/rules.d/90-k4a.rules`
 
 ```
-# this file belongs in /etc/udev/rules.d/
+# This file belongs in /etc/udev/rules.d/90-k4a.rules
 # ATTR{product}=="Kinect4Azure"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097a", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097b", MODE="0666"
