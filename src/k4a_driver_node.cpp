@@ -18,6 +18,7 @@ int main(int argc, char** argv)
   const std::string pointcloud_frame =
       nhp.param(std::string("pointcloud_frame"),
                 std::string("k4a_depth_optical_frame"));
+  const int32_t device_number = nhp.param(std::string("device_number"), 0);
   ros::Publisher pointcloud_pub =
       nh.advertise<sensor_msgs::PointCloud2>(pointcloud_topic, 1, false);
   // Set up device
@@ -26,10 +27,19 @@ int main(int argc, char** argv)
   {
     ROS_FATAL("No k4a devices found");
   }
+  if (device_number < 0)
+  {
+    ROS_FATAL("device_number [%i] less than zero", device_number);
+  }
+  else if (static_cast<uint32_t>(device_number) >= device_count)
+  {
+    ROS_FATAL("device_number [%i] greater than device_count [%i]",
+              device_number, device_count);
+  }
   // Get the default device
-  const uint8_t device_id = K4A_DEVICE_DEFAULT;
   k4a_device_t device = nullptr;
-  if (k4a_device_open(device_id, &device) != K4A_RESULT_SUCCEEDED)
+  if (k4a_device_open(static_cast<uint32_t>(device_number), &device)
+      != K4A_RESULT_SUCCEEDED)
   {
     if (device != nullptr)
     {
