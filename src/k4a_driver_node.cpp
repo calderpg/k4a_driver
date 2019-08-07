@@ -105,6 +105,10 @@ int main(int argc, char** argv)
       nhp.param(std::string("enable_depth_binning"), false);
   const std::string sync_mode =
       nhp.param(std::string("sync_mode"), std::string("standalone"));
+  // Per https://github.com/microsoft/Azure-Kinect-Sensor-SDK/issues/436,
+  // subordinate devices should be delayed by 160us to avoid depth interference.
+  const int32_t subordinate_sync_delay_usec =
+      nhp.param(std::string("subordinate_sync_delay_usec"), 160);
   ros::Publisher pointcloud_pub =
       nh.advertise<sensor_msgs::PointCloud2>(camera_name + "/points", 1, false);
   ros::Publisher tf_pub = nh.advertise<tf2_msgs::TFMessage>(tf_topic, 1, false);
@@ -219,6 +223,15 @@ int main(int argc, char** argv)
   {
     ROS_FATAL("Invalid sync mode [%s], valid options are standalone, master, or"
               " subordinate", sync_mode.c_str());
+  }
+  if (subordinate_sync_delay_usec >= 0)
+  {
+    config.subordinate_delay_off_master_usec =
+        static_cast<uint32_t>(subordinate_sync_delay_usec);
+  }
+  else
+  {
+    ROS_FATAL("subordinate_sync_delay_usec must be >= 0");
   }
   config.synchronized_images_only = true;
   // Get the default device
