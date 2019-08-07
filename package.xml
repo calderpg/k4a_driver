@@ -10,9 +10,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>geometry_msgs</depend>
+  <depend>image_transport</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
-
+  <depend>tf2_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

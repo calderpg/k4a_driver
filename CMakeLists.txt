@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(k4a_driver)
 
-find_package(catkin REQUIRED COMPONENTS roscpp sensor_msgs geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS
+             roscpp image_transport sensor_msgs geometry_msgs tf2_msgs)
 find_package(Eigen3 REQUIRED)
 set(Eigen3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 find_package(OpenMP)
@@ -9,8 +10,10 @@ find_package(k4a REQUIRED)
 
 catkin_package(CATKIN_DEPENDS
                roscpp
+               image_transport
                sensor_msgs
                geometry_msgs
+               tf2_msgs
                DEPENDS
                Eigen3)
 
