@@ -214,6 +214,15 @@ int main(int argc, char** argv)
   else if (sync_mode == "subordinate")
   {
     config.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE;
+    if (subordinate_sync_delay_usec >= 0)
+    {
+      config.subordinate_delay_off_master_usec =
+          static_cast<uint32_t>(subordinate_sync_delay_usec);
+    }
+    else
+    {
+      ROS_FATAL("subordinate_sync_delay_usec must be >= 0");
+    }
   }
   else if (sync_mode == "standalone")
   {
@@ -223,15 +232,6 @@ int main(int argc, char** argv)
   {
     ROS_FATAL("Invalid sync mode [%s], valid options are standalone, master, or"
               " subordinate", sync_mode.c_str());
-  }
-  if (subordinate_sync_delay_usec >= 0)
-  {
-    config.subordinate_delay_off_master_usec =
-        static_cast<uint32_t>(subordinate_sync_delay_usec);
-  }
-  else
-  {
-    ROS_FATAL("subordinate_sync_delay_usec must be >= 0");
   }
   config.synchronized_images_only = true;
   // Get the default device
