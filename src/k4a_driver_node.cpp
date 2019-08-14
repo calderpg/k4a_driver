@@ -246,6 +246,77 @@ int main(int argc, char** argv)
     ROS_FATAL("Failed to open device");
   }
   ROS_INFO("Opened device [%i]", device_number);
+  // Get the serial number
+  size_t serial_num_buffer_size = 0;
+  // Call once to get the buffer size
+  k4a_device_get_serialnum(device, nullptr, &serial_num_buffer_size);
+  std::string serial_num(serial_num_buffer_size, 0x00);
+  if (k4a_device_get_serialnum(
+          device, &serial_num.at(0), &serial_num_buffer_size)
+      != K4A_BUFFER_RESULT_SUCCEEDED)
+  {
+    if (device != nullptr)
+    {
+      k4a_device_close(device);
+    }
+    ROS_FATAL("Failed to get device serial number");
+  }
+  ROS_INFO("K4A Device serial [%s]", serial_num.c_str());
+  // Get the firmware version
+  k4a_hardware_version_t hardware_version;
+  if (k4a_device_get_version(device, &hardware_version) != K4A_RESULT_SUCCEEDED)
+  {
+    if (device != nullptr)
+    {
+      k4a_device_close(device);
+    }
+    ROS_FATAL("Failed to get device hardware version");
+  }
+  ROS_INFO("RGB Camera firmware version %u.%u.%u",
+           hardware_version.rgb.major,
+           hardware_version.rgb.minor,
+           hardware_version.rgb.iteration);
+  ROS_INFO("Depth Camera firmware version %u.%u.%u",
+           hardware_version.depth.major,
+           hardware_version.depth.minor,
+           hardware_version.depth.iteration);
+  ROS_INFO("Audio firmware version %u.%u.%u",
+           hardware_version.audio.major,
+           hardware_version.audio.minor,
+           hardware_version.audio.iteration);
+  ROS_INFO("Depth Sensor firmware version %u.%u.%u",
+           hardware_version.depth_sensor.major,
+           hardware_version.depth_sensor.minor,
+           hardware_version.depth_sensor.iteration);
+  if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_RELEASE)
+  {
+    ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_RELEASE");
+  }
+  else if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_DEBUG)
+  {
+    ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_DEBUG");
+  }
+  else
+  {
+    ROS_WARN("Unrecognized firmware build type");
+  }
+  if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_MSFT)
+  {
+    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_MSFT");
+  }
+  else if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_TEST)
+  {
+    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_TEST");
+  }
+  else if (hardware_version.firmware_signature
+           == K4A_FIRMWARE_SIGNATURE_UNSIGNED)
+  {
+    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_UNSIGNED");
+  }
+  else
+  {
+    ROS_WARN("Unrecognized firmware signature type");
+  }
   // Get the device camera->camera calibration
   k4a_calibration_t calibration;
   if (k4a_device_get_calibration(
