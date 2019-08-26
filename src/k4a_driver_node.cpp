@@ -121,15 +121,21 @@ int main(int argc, char** argv)
   if (device_count == 0)
   {
     ROS_FATAL("No k4a devices found");
+    ros::shutdown();
+    return -1;
   }
   if (device_number < 0)
   {
     ROS_FATAL("device_number [%i] less than zero", device_number);
+    ros::shutdown();
+    return -1;
   }
   else if (static_cast<uint32_t>(device_number) >= device_count)
   {
     ROS_FATAL("device_number [%i] greater than device_count [%i]",
               device_number, device_count);
+    ros::shutdown();
+    return -1;
   }
   // Configure the device
   k4a_device_configuration_t config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
@@ -163,6 +169,8 @@ int main(int argc, char** argv)
     ROS_FATAL(
         "Invalid color resolution option [%s], valid options are 720p, 1080p, "
         "1440p, 1536p, 2160p, or 3072p", color_resolution.c_str());
+    ros::shutdown();
+    return -1;
   }
   if (enable_wide_depth_fov)
   {
@@ -206,6 +214,8 @@ int main(int argc, char** argv)
   {
     ROS_FATAL("Invalid frame rate [%i], valid options are 5, 15, or 30",
               nominal_frame_rate);
+    ros::shutdown();
+    return -1;
   }
   if (sync_mode == "master")
   {
@@ -222,6 +232,8 @@ int main(int argc, char** argv)
     else
     {
       ROS_FATAL("subordinate_sync_delay_usec must be >= 0");
+      ros::shutdown();
+      return -1;
     }
   }
   else if (sync_mode == "standalone")
@@ -232,6 +244,8 @@ int main(int argc, char** argv)
   {
     ROS_FATAL("Invalid sync mode [%s], valid options are standalone, master, or"
               " subordinate", sync_mode.c_str());
+    ros::shutdown();
+    return -1;
   }
   config.synchronized_images_only = true;
   // Get the default device
@@ -244,6 +258,8 @@ int main(int argc, char** argv)
       k4a_device_close(device);
     }
     ROS_FATAL("Failed to open device");
+    ros::shutdown();
+    return -1;
   }
   ROS_INFO("Opened device [%i]", device_number);
   // Get the serial number
@@ -260,6 +276,8 @@ int main(int argc, char** argv)
       k4a_device_close(device);
     }
     ROS_FATAL("Failed to get device serial number");
+    ros::shutdown();
+    return -1;
   }
   ROS_INFO("K4A Device serial [%s]", serial_num.c_str());
   // Get the firmware version
@@ -271,6 +289,8 @@ int main(int argc, char** argv)
       k4a_device_close(device);
     }
     ROS_FATAL("Failed to get device hardware version");
+    ros::shutdown();
+    return -1;
   }
   ROS_INFO("RGB Camera firmware version %u.%u.%u",
            hardware_version.rgb.major,
@@ -328,6 +348,8 @@ int main(int argc, char** argv)
       k4a_device_close(device);
     }
     ROS_FATAL("Failed to get device calibration");
+    ros::shutdown();
+    return -1;
   }
   // Make the image transformation
   k4a_transformation_t transformation = k4a_transformation_create(&calibration);
