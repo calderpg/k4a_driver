@@ -22,5 +22,3 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097e", MODE="0666"
 ## Run
 
 Run with `~$ rosrun k4a_driver k4a_driver_node`
-
-Note this driver currently only supports one connected K4A sensor.
