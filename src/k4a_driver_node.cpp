@@ -192,8 +192,7 @@ public:
     {
       throw std::runtime_error("Failed to open device");
     }
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "Opened device [%i]", device_number);
+    ROS_INFO("Opened device [%i]", device_number);
     LoadHardwareInformation();
     LoadCameraIntrinsics();
     pointcloud_pub_ =
@@ -486,9 +485,7 @@ private:
     {
       throw std::runtime_error("Failed to get device serial number");
     }
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "K4A Device serial [%s]",
-        serial_num.c_str());
+    ROS_INFO("K4A Device serial [%s]", serial_num.c_str());
     // Get the firmware version
     k4a_hardware_version_t hardware_version;
     if (k4a_device_get_version(device_, &hardware_version)
@@ -496,63 +493,51 @@ private:
     {
       throw std::runtime_error("Failed to get device hardware version");
     }
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "RGB Camera firmware version %u.%u.%u",
+    ROS_INFO(
+        "RGB Camera firmware version %u.%u.%u",
         hardware_version.rgb.major, hardware_version.rgb.minor,
         hardware_version.rgb.iteration);
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "Depth Camera firmware version %u.%u.%u",
+    ROS_INFO(
+        "Depth Camera firmware version %u.%u.%u",
         hardware_version.depth.major, hardware_version.depth.minor,
         hardware_version.depth.iteration);
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "Audio firmware version %u.%u.%u",
+    ROS_INFO(
+        "Audio firmware version %u.%u.%u",
         hardware_version.audio.major, hardware_version.audio.minor,
         hardware_version.audio.iteration);
-    ROS_INFO_NAMED(
-        ros::this_node::getName(), "Depth Sensor firmware version %u.%u.%u",
+    ROS_INFO(
+        "Depth Sensor firmware version %u.%u.%u",
         hardware_version.depth_sensor.major,
         hardware_version.depth_sensor.minor,
         hardware_version.depth_sensor.iteration);
     if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_RELEASE)
     {
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Firmware type = K4A_FIRMWARE_BUILD_RELEASE");
+      ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_RELEASE");
     }
     else if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_DEBUG)
     {
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Firmware type = K4A_FIRMWARE_BUILD_DEBUG");
+      ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_DEBUG");
     }
     else
     {
-      ROS_WARN_NAMED(
-          ros::this_node::getName(), "Unrecognized firmware build type");
+      ROS_WARN("Unrecognized firmware build type");
     }
     if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_MSFT)
     {
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Firmware signature = K4A_FIRMWARE_SIGNATURE_MSFT");
+      ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_MSFT");
     }
     else if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_TEST)
     {
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Firmware signature = K4A_FIRMWARE_SIGNATURE_TEST");
+      ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_TEST");
     }
     else if (hardware_version.firmware_signature
             == K4A_FIRMWARE_SIGNATURE_UNSIGNED)
     {
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Firmware signature = K4A_FIRMWARE_SIGNATURE_UNSIGNED");
+      ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_UNSIGNED");
     }
     else
     {
-      ROS_WARN_NAMED(
-          ros::this_node::getName(), "Unrecognized firmware signature type");
+      ROS_WARN("Unrecognized firmware signature type");
     }
   }
 
@@ -647,44 +632,32 @@ int main(int argc, char** argv)
   if (color_resolution == "720p" || color_resolution == "720P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_720P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_720P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_720P");
   }
   else if (color_resolution == "1080p" || color_resolution == "1080P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_1080P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_1080P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_1080P");
   }
   else if (color_resolution == "1440p" || color_resolution == "1440P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_1440P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_1440P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_1440P");
   }
   else if (color_resolution == "1536p" || color_resolution == "1536P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_1536P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_1536P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_1536P");
   }
   else if (color_resolution == "2160p" || color_resolution == "2160P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_2160P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_2160P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_2160P");
   }
   else if (color_resolution == "3072p" || color_resolution == "3072P")
   {
     config.color_resolution = K4A_COLOR_RESOLUTION_3072P;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using color resolution K4A_COLOR_RESOLUTION_3072P");
+    ROS_INFO("Using color resolution K4A_COLOR_RESOLUTION_3072P");
   }
   else
   {
@@ -697,16 +670,12 @@ int main(int argc, char** argv)
     if (enable_depth_binning)
     {
       config.depth_mode = K4A_DEPTH_MODE_WFOV_2X2BINNED;
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Using depth mode K4A_DEPTH_MODE_WFOV_2X2BINNED");
+      ROS_INFO("Using depth mode K4A_DEPTH_MODE_WFOV_2X2BINNED");
     }
     else
     {
       config.depth_mode = K4A_DEPTH_MODE_WFOV_UNBINNED;
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Using depth mode K4A_DEPTH_MODE_WFOV_UNBINNED");
+      ROS_INFO("Using depth mode K4A_DEPTH_MODE_WFOV_UNBINNED");
     }
   }
   else
@@ -714,32 +683,28 @@ int main(int argc, char** argv)
     if (enable_depth_binning)
     {
       config.depth_mode = K4A_DEPTH_MODE_NFOV_2X2BINNED;
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Using depth mode K4A_DEPTH_MODE_NFOV_2X2BINNED");
+      ROS_INFO("Using depth mode K4A_DEPTH_MODE_NFOV_2X2BINNED");
     }
     else
     {
       config.depth_mode = K4A_DEPTH_MODE_NFOV_UNBINNED;
-      ROS_INFO_NAMED(
-          ros::this_node::getName(),
-          "Using depth mode K4A_DEPTH_MODE_NFOV_UNBINNED");
+      ROS_INFO("Using depth mode K4A_DEPTH_MODE_NFOV_UNBINNED");
     }
   }
   if (nominal_frame_rate == 5)
   {
     config.camera_fps = K4A_FRAMES_PER_SECOND_5;
-    ROS_INFO_NAMED(ros::this_node::getName(), "Using K4A_FRAMES_PER_SECOND_5");
+    ROS_INFO("Using K4A_FRAMES_PER_SECOND_5");
   }
   else if (nominal_frame_rate == 15)
   {
     config.camera_fps = K4A_FRAMES_PER_SECOND_15;
-    ROS_INFO_NAMED(ros::this_node::getName(), "Using K4A_FRAMES_PER_SECOND_15");
+    ROS_INFO("Using K4A_FRAMES_PER_SECOND_15");
   }
   else if (nominal_frame_rate == 30)
   {
     config.camera_fps = K4A_FRAMES_PER_SECOND_30;
-    ROS_INFO_NAMED(ros::this_node::getName(), "Using K4A_FRAMES_PER_SECOND_30");
+    ROS_INFO("Using K4A_FRAMES_PER_SECOND_30");
   }
   else
   {
@@ -750,16 +715,12 @@ int main(int argc, char** argv)
   if (sync_mode == "master")
   {
     config.wired_sync_mode = K4A_WIRED_SYNC_MODE_MASTER;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using sync mode K4A_WIRED_SYNC_MODE_MASTER");
+    ROS_INFO("Using sync mode K4A_WIRED_SYNC_MODE_MASTER");
   }
   else if (sync_mode == "subordinate")
   {
     config.wired_sync_mode = K4A_WIRED_SYNC_MODE_SUBORDINATE;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using sync mode K4A_WIRED_SYNC_MODE_SUBORDINATE");
+    ROS_INFO("Using sync mode K4A_WIRED_SYNC_MODE_SUBORDINATE");
     if (subordinate_sync_delay_usec >= 0)
     {
       config.subordinate_delay_off_master_usec =
@@ -773,9 +734,7 @@ int main(int argc, char** argv)
   else if (sync_mode == "standalone")
   {
     config.wired_sync_mode = K4A_WIRED_SYNC_MODE_STANDALONE;
-    ROS_INFO_NAMED(
-        ros::this_node::getName(),
-        "Using sync mode K4A_WIRED_SYNC_MODE_STANDALONE");
+    ROS_INFO("Using sync mode K4A_WIRED_SYNC_MODE_STANDALONE");
   }
   else
   {
