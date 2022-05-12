@@ -8,7 +8,11 @@ set(Eigen3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
 find_package(OpenMP)
 find_package(k4a REQUIRED)
 
-catkin_package(CATKIN_DEPENDS
+catkin_package(INCLUDE_DIRS
+               include
+               LIBRARIES
+               ${PROJECT_NAME}
+               CATKIN_DEPENDS
                roscpp
                image_transport
                sensor_msgs
@@ -17,9 +21,9 @@ catkin_package(CATKIN_DEPENDS
                DEPENDS
                Eigen3)
 
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS}
-                           ${Eigen3_INCLUDE_DIRS}
-                           ${k4a_INCLUDE_DIRS})
+include_directories(include SYSTEM ${catkin_INCLUDE_DIRS}
+                                   ${Eigen3_INCLUDE_DIRS}
+                                   ${k4a_INCLUDE_DIRS})
 
 ## Build options
 add_compile_options(-std=c++11)
@@ -42,11 +46,18 @@ set(CMAKE_EXE_LINKER_FLAGS
 set(CMAKE_SHARED_LINKER_FLAGS
     "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS}")
 
+add_library(${PROJECT_NAME}
+            include/${PROJECT_NAME}/k4a_driver.hpp
+            src/${PROJECT_NAME}/k4a_driver.cpp)
+add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
+
 add_executable(k4a_driver_node src/k4a_driver_node.cpp)
 add_dependencies(k4a_driver_node ${catkin_EXPORTED_TARGETS})
-target_link_libraries(k4a_driver_node ${catkin_LIBRARIES} k4a::k4a)
+target_link_libraries(k4a_driver_node
+                      ${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
 
-install(TARGETS k4a_driver_node
+install(TARGETS ${PROJECT_NAME} k4a_driver_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
