@@ -231,6 +231,10 @@ K4ACamera::K4ACamera(
         ROS_INFO("Found device with serial [%s]", device_serial.c_str());
         break;
       }
+      else
+      {
+        k4a_device_close(device);
+      }
     }
     else
     {
