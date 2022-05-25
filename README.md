@@ -17,8 +17,8 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097d", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097e", MODE="0666"
 ```
 
-3. Install ROS Melodic
+3. Install ROS 2
 
 ## Run
 
-Run with `~$ rosrun k4a_driver k4a_driver_node`
+Run with `~$ ros2 run k4a_driver k4a_driver_node`

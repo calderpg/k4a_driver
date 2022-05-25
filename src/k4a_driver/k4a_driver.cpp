@@ -8,24 +8,24 @@
 
 #include <Eigen/Geometry>
 
-#include <geometry_msgs/TransformStamped.h>
-#include <image_transport/image_transport.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <image_transport/image_transport.hpp>
 #include <k4a/k4a.h>
-#include <ros/ros.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <tf2_msgs/TFMessage.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <tf2_msgs/msg/tf_message.hpp>
 
 namespace k4a_driver
 {
 namespace
 {
-geometry_msgs::TransformStamped ExtrinsicsToTransformStamped(
+geometry_msgs::msg::TransformStamped ExtrinsicsToTransformStamped(
     const k4a_calibration_extrinsics_t& extrinsics,
     const std::string& source_frame_name, const std::string& target_frame_name)
 {
-  geometry_msgs::TransformStamped transform_msg;
+  geometry_msgs::msg::TransformStamped transform_msg;
   transform_msg.header.frame_id = source_frame_name;
   transform_msg.child_frame_id = target_frame_name;
   Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
@@ -56,34 +56,34 @@ geometry_msgs::TransformStamped ExtrinsicsToTransformStamped(
   return transform_msg;
 }
 
-sensor_msgs::CameraInfo IntrinsicsToCameraInfo(
+sensor_msgs::msg::CameraInfo IntrinsicsToCameraInfo(
     const k4a_calibration_intrinsics_t& intrinsics, const uint32_t width,
     const uint32_t height, const std::string& camera_optical_frame_name)
 {
-  sensor_msgs::CameraInfo intrinsics_msg;
+  sensor_msgs::msg::CameraInfo intrinsics_msg;
   intrinsics_msg.header.frame_id = camera_optical_frame_name;
   intrinsics_msg.width = width;
   intrinsics_msg.height = height;
   // Distortion model
   intrinsics_msg.distortion_model = "plumb_bob";
-  intrinsics_msg.D =
+  intrinsics_msg.d =
       {intrinsics.parameters.param.k1,
        intrinsics.parameters.param.k2,
        intrinsics.parameters.param.p1,
        intrinsics.parameters.param.p2,
        intrinsics.parameters.param.k3};
   // Intrinsic matrix
-  intrinsics_msg.K =
+  intrinsics_msg.k =
       {intrinsics.parameters.param.fx, 0.0, intrinsics.parameters.param.cx,
        0.0, intrinsics.parameters.param.fy, intrinsics.parameters.param.cy,
        0.0 , 0.0, 1.0};
   // Rectification matrix
-  intrinsics_msg.R =
+  intrinsics_msg.r =
       {1.0, 0.0, 0.0,
        0.0, 1.0, 0.0,
        0.0, 0.0, 1.0};
   // Projection matrix
-  intrinsics_msg.P =
+  intrinsics_msg.p =
       {intrinsics.parameters.param.fx, 0.0, intrinsics.parameters.param.cx, 0.0,
        0.0, intrinsics.parameters.param.fy, intrinsics.parameters.param.cy, 0.0,
        0.0 , 0.0, 1.0, 0.0};
@@ -169,10 +169,10 @@ using ScopedK4AImage = ScopedK4AHandle<k4a_image_t, K4AImageRelease>;
 }  // namespace
 
 K4ACamera::K4ACamera(
-    const ros::NodeHandle& nh, const std::string& tf_topic,
+    rclcpp::Node::SharedPtr node, const std::string& tf_topic,
     const std::string& camera_name, const int32_t device_number,
     const k4a_device_configuration_t& device_configuration)
-    : nh_(nh), it_(nh_), camera_name_(camera_name),
+    : node_(node), it_(node_), camera_name_(camera_name),
       device_configuration_(device_configuration)
 {
   // Open device
@@ -197,16 +197,16 @@ K4ACamera::K4ACamera(
   {
     throw std::runtime_error("Failed to open device");
   }
-  ROS_INFO("Opened device [%i]", device_number);
+  RCLCPP_INFO(node_->get_logger(), "Opened device [%i]", device_number);
   // Initialize
   Initialize(tf_topic);
 }
 
 K4ACamera::K4ACamera(
-    const ros::NodeHandle& nh, const std::string& tf_topic,
+    rclcpp::Node::SharedPtr node, const std::string& tf_topic,
     const std::string& camera_name, const std::string& serial_number,
     const k4a_device_configuration_t& device_configuration)
-    : nh_(nh), it_(nh_), camera_name_(camera_name),
+    : node_(node), it_(node_), camera_name_(camera_name),
       device_configuration_(device_configuration)
 {
   // Open device
@@ -215,20 +215,20 @@ K4ACamera::K4ACamera(
   {
     throw std::runtime_error("No k4a devices found");
   }
-  ROS_INFO("Looking for device with serial number [%s]", serial_number.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Looking for device with serial number [%s]", serial_number.c_str());
   for (uint32_t device_num = 0; device_num < device_count; device_num++)
   {
     k4a_device_t device = nullptr;
     if (k4a_device_open(device_num, &device) == K4A_RESULT_SUCCEEDED)
     {
       const std::string device_serial = GetSerialNumber(device);
-      ROS_INFO(
+      RCLCPP_INFO(node_->get_logger(), 
           "Opened device [%i] with serial number [%s]",
           device_num, device_serial.c_str());
       if (device_serial == serial_number)
       {
         device_ = device;
-        ROS_INFO("Found device with serial [%s]", device_serial.c_str());
+        RCLCPP_INFO(node_->get_logger(), "Found device with serial [%s]", device_serial.c_str());
         break;
       }
       else
@@ -238,7 +238,7 @@ K4ACamera::K4ACamera(
     }
     else
     {
-      ROS_INFO("Failed to open device [%i], is it already in use?", device_num);
+      RCLCPP_INFO(node_->get_logger(), "Failed to open device [%i], is it already in use?", device_num);
     }
   }
   if (device_ == nullptr)
@@ -274,14 +274,14 @@ void K4ACamera::Loop()
     const int color_pixel_size = 4 * static_cast<int>(sizeof(uint8_t));
     const int depth_pixel_size = static_cast<int>(sizeof(int16_t));
     const int depth_point_size = 3 * static_cast<int>(sizeof(int16_t));
-    while (ros::ok())
+    while (rclcpp::ok())
     {
       ScopedK4ACapture capture;
       const auto result =
           k4a_device_get_capture(device_, &capture.Get(), 1000);
       if (result == K4A_WAIT_RESULT_SUCCEEDED)
       {
-        const auto capture_time = ros::Time::now();
+        const auto capture_time = node_->now();
         ScopedK4AImage depth_image(
             k4a_capture_get_depth_image(capture.Get()));
         ScopedK4AImage color_image(
@@ -289,7 +289,7 @@ void K4ACamera::Loop()
         if (depth_image && color_image)
         {
           // Convert images to ROS image form
-          sensor_msgs::Image ros_color_image;
+          sensor_msgs::msg::Image ros_color_image;
           ros_color_image.header.stamp = capture_time;
           ros_color_image.header.frame_id =
               color_camera_intrinsics_.header.frame_id;
@@ -305,7 +305,7 @@ void K4ACamera::Loop()
               k4a_image_get_buffer(color_image.Get());
           std::memcpy(ros_color_image.data.data(), color_image_buffer,
                       ros_color_image.data.size());
-          sensor_msgs::Image ros_depth_image;
+          sensor_msgs::msg::Image ros_depth_image;
           ros_depth_image.header.stamp = capture_time;
           ros_depth_image.header.frame_id =
               depth_camera_intrinsics_.header.frame_id;
@@ -380,7 +380,7 @@ void K4ACamera::Loop()
           const uint8_t* point_cloud_image_buffer =
               k4a_image_get_buffer(point_cloud_image.Get());
           // Create PointCloud2 message
-          sensor_msgs::PointCloud2 pointcloud_message;
+          sensor_msgs::msg::PointCloud2 pointcloud_message;
           pointcloud_message.header.stamp = capture_time;
           pointcloud_message.header.frame_id =
               camera_to_depth_transform_.child_frame_id;
@@ -394,26 +394,26 @@ void K4ACamera::Loop()
           pointcloud_message.row_step =
               pointcloud_message.width * pointcloud_message.point_step;
           // Populate the fields
-          sensor_msgs::PointField x_field;
+          sensor_msgs::msg::PointField x_field;
           x_field.name = "x";
           x_field.offset = 0;
-          x_field.datatype = sensor_msgs::PointField::FLOAT32;
+          x_field.datatype = sensor_msgs::msg::PointField::FLOAT32;
           x_field.count = 1;
-          sensor_msgs::PointField y_field;
+          sensor_msgs::msg::PointField y_field;
           y_field.name = "y";
           y_field.offset = 4;
-          y_field.datatype = sensor_msgs::PointField::FLOAT32;
+          y_field.datatype = sensor_msgs::msg::PointField::FLOAT32;
           y_field.count = 1;
-          sensor_msgs::PointField z_field;
+          sensor_msgs::msg::PointField z_field;
           z_field.name = "z";
           z_field.offset = 8;
-          z_field.datatype = sensor_msgs::PointField::FLOAT32;
+          z_field.datatype = sensor_msgs::msg::PointField::FLOAT32;
           z_field.count = 1;
           // Of course RViz + PCL need it this way
-          sensor_msgs::PointField rgb_field;
+          sensor_msgs::msg::PointField rgb_field;
           rgb_field.name = "rgb";
           rgb_field.offset = 12;
-          rgb_field.datatype = sensor_msgs::PointField::FLOAT32;
+          rgb_field.datatype = sensor_msgs::msg::PointField::FLOAT32;
           rgb_field.count = 1;
           pointcloud_message.fields =
               {x_field, y_field, z_field, rgb_field};
@@ -482,8 +482,8 @@ void K4ACamera::Loop()
           color_camera_intrinsics_.header.stamp = capture_time;
           depth_camera_intrinsics_.header.stamp = capture_time;
           // Publish
-          tf_pub_.publish(camera_transforms_);
-          pointcloud_pub_.publish(pointcloud_message);
+          tf_pub_->publish(camera_transforms_);
+          pointcloud_pub_->publish(pointcloud_message);
           color_pub_.publish(ros_color_image, color_camera_intrinsics_);
           depth_pub_.publish(ros_depth_image, depth_camera_intrinsics_);
         }
@@ -509,7 +509,7 @@ void K4ACamera::Loop()
       {
         throw std::runtime_error("Failed to read capture");
       }
-      ros::spinOnce();
+      rclcpp::spin_some(node_);
     }
   }
   else
@@ -539,9 +539,9 @@ void K4ACamera::Initialize(const std::string& tf_topic)
   LoadHardwareInformation();
   LoadCameraIntrinsics();
   pointcloud_pub_ =
-      nh_.advertise<sensor_msgs::PointCloud2>(
-          camera_name_ + "/points", 1, false);
-  tf_pub_ = nh_.advertise<tf2_msgs::TFMessage>(tf_topic, 1, false);
+      node_->create_publisher<sensor_msgs::msg::PointCloud2>(
+          camera_name_ + "/points", rclcpp::QoS(rclcpp::KeepLast(1)));
+  tf_pub_ = node_->create_publisher<tf2_msgs::msg::TFMessage>(tf_topic, rclcpp::QoS(rclcpp::KeepLast(1)));
   color_pub_ = it_.advertiseCamera(camera_name_ + "/color/image", 1, false);
   depth_pub_ = it_.advertiseCamera(camera_name_ + "/depth/image", 1, false);
 }
@@ -550,7 +550,7 @@ void K4ACamera::LoadHardwareInformation()
 {
   // Get the serial number
   const std::string serial_num = GetSerialNumber(device_);
-  ROS_INFO("K4A Device serial [%s]", serial_num.c_str());
+  RCLCPP_INFO(node_->get_logger(), "K4A Device serial [%s]", serial_num.c_str());
   // Get the firmware version
   k4a_hardware_version_t hardware_version;
   if (k4a_device_get_version(device_, &hardware_version)
@@ -558,51 +558,51 @@ void K4ACamera::LoadHardwareInformation()
   {
     throw std::runtime_error("Failed to get device hardware version");
   }
-  ROS_INFO(
+  RCLCPP_INFO(node_->get_logger(), 
       "RGB Camera firmware version %u.%u.%u",
       hardware_version.rgb.major, hardware_version.rgb.minor,
       hardware_version.rgb.iteration);
-  ROS_INFO(
+  RCLCPP_INFO(node_->get_logger(), 
       "Depth Camera firmware version %u.%u.%u",
       hardware_version.depth.major, hardware_version.depth.minor,
       hardware_version.depth.iteration);
-  ROS_INFO(
+  RCLCPP_INFO(node_->get_logger(), 
       "Audio firmware version %u.%u.%u",
       hardware_version.audio.major, hardware_version.audio.minor,
       hardware_version.audio.iteration);
-  ROS_INFO(
+  RCLCPP_INFO(node_->get_logger(), 
       "Depth Sensor firmware version %u.%u.%u",
       hardware_version.depth_sensor.major,
       hardware_version.depth_sensor.minor,
       hardware_version.depth_sensor.iteration);
   if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_RELEASE)
   {
-    ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_RELEASE");
+    RCLCPP_INFO(node_->get_logger(), "Firmware type = K4A_FIRMWARE_BUILD_RELEASE");
   }
   else if (hardware_version.firmware_build == K4A_FIRMWARE_BUILD_DEBUG)
   {
-    ROS_INFO("Firmware type = K4A_FIRMWARE_BUILD_DEBUG");
+    RCLCPP_INFO(node_->get_logger(), "Firmware type = K4A_FIRMWARE_BUILD_DEBUG");
   }
   else
   {
-    ROS_WARN("Unrecognized firmware build type");
+    RCLCPP_WARN(node_->get_logger(), "Unrecognized firmware build type");
   }
   if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_MSFT)
   {
-    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_MSFT");
+    RCLCPP_INFO(node_->get_logger(), "Firmware signature = K4A_FIRMWARE_SIGNATURE_MSFT");
   }
   else if (hardware_version.firmware_signature == K4A_FIRMWARE_SIGNATURE_TEST)
   {
-    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_TEST");
+    RCLCPP_INFO(node_->get_logger(), "Firmware signature = K4A_FIRMWARE_SIGNATURE_TEST");
   }
   else if (hardware_version.firmware_signature
           == K4A_FIRMWARE_SIGNATURE_UNSIGNED)
   {
-    ROS_INFO("Firmware signature = K4A_FIRMWARE_SIGNATURE_UNSIGNED");
+    RCLCPP_INFO(node_->get_logger(), "Firmware signature = K4A_FIRMWARE_SIGNATURE_UNSIGNED");
   }
   else
   {
-    ROS_WARN("Unrecognized firmware signature type");
+    RCLCPP_WARN(node_->get_logger(), "Unrecognized firmware signature type");
   }
 }
 

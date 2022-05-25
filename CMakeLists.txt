@@ -1,32 +1,27 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.9)
 project(k4a_driver)
 
-find_package(catkin REQUIRED COMPONENTS
-             roscpp image_transport sensor_msgs geometry_msgs tf2_msgs)
+find_package(ament_cmake REQUIRED)
+
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(image_transport REQUIRED)
+
 find_package(Eigen3 REQUIRED)
-set(Eigen3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
-find_package(OpenMP)
+
+find_package(OpenMP REQUIRED)
 find_package(k4a REQUIRED)
 
-catkin_package(INCLUDE_DIRS
-               include
-               LIBRARIES
-               ${PROJECT_NAME}
-               CATKIN_DEPENDS
-               roscpp
-               image_transport
-               sensor_msgs
-               geometry_msgs
-               tf2_msgs
-               DEPENDS
-               Eigen3)
-
-include_directories(include SYSTEM ${catkin_INCLUDE_DIRS}
-                                   ${Eigen3_INCLUDE_DIRS}
-                                   ${k4a_INCLUDE_DIRS})
+ament_export_dependencies(k4a)
+ament_export_dependencies(image_transport)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(geometry_msgs)
+ament_export_dependencies(tf2_msgs)
+ament_export_dependencies(rclcpp)
 
 ## Build options
-add_compile_options(-std=c++11)
 add_compile_options(-Wall)
 add_compile_options(-Wextra)
 add_compile_options(-Werror)
@@ -37,28 +32,41 @@ add_compile_options(-g)
 add_compile_options(-flto)
 add_compile_options(-Werror=non-virtual-dtor)
 
-## It's not clear if add_compile_options does the right things for flags that
-## may differ between languages and target type.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS
-    "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS
-    "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS}")
-
 add_library(${PROJECT_NAME}
             include/${PROJECT_NAME}/k4a_driver.hpp
             src/${PROJECT_NAME}/k4a_driver.cpp)
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
+target_include_directories(${PROJECT_NAME} PUBLIC
+                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                           "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+target_link_libraries(${PROJECT_NAME} PUBLIC
+                      k4a::k4a
+                      rclcpp::rclcpp
+                      ${sensor_msgs_TARGETS}
+                      ${tf2_msgs_TARGETS}
+                      ${geometry_msgs_TARGETS}
+                      image_transport::image_transport)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+                      OpenMP::OpenMP_CXX
+                      Eigen3::Eigen)
+target_compile_features(${PROJECT_NAME} PUBLIC
+                        cxx_std_11)
 
 add_executable(k4a_driver_node src/k4a_driver_node.cpp)
-add_dependencies(k4a_driver_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(k4a_driver_node
-                      ${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
+                      ${PROJECT_NAME})
 
-install(TARGETS ${PROJECT_NAME} k4a_driver_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(TARGETS ${PROJECT_NAME} k4a_driver_node EXPORT ${PROJECT_NAME}
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
 )
+
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+# Export modern CMake targets
+ament_export_targets(${PROJECT_NAME})
+
+ament_package()
