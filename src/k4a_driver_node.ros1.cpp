@@ -3,7 +3,7 @@
 #include <string>
 
 #include <k4a/k4a.h>
-#include <k4a_driver/k4a_driver.hpp>
+#include <k4a_driver/k4a_driver.ros1.hpp>
 #include <ros/ros.h>
 
 int main(int argc, char** argv)

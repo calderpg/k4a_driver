@@ -26,6 +26,9 @@ include_directories(include SYSTEM ${catkin_INCLUDE_DIRS}
                                    ${k4a_INCLUDE_DIRS})
 
 ## Build options
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+cmake_policy(SET CMP0069 NEW)
+
 add_compile_options(-std=c++11)
 add_compile_options(-Wall)
 add_compile_options(-Wextra)
@@ -34,8 +37,10 @@ add_compile_options(-Wconversion)
 add_compile_options(-Wshadow)
 add_compile_options(-O3)
 add_compile_options(-g)
-add_compile_options(-flto)
 add_compile_options(-Werror=non-virtual-dtor)
+add_compile_options(-Wold-style-cast)
+add_compile_options(-Wpessimizing-move)
+add_compile_options(-Wuninitialized)
 
 ## It's not clear if add_compile_options does the right things for flags that
 ## may differ between languages and target type.
@@ -47,12 +52,12 @@ set(CMAKE_SHARED_LINKER_FLAGS
     "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS}")
 
 add_library(${PROJECT_NAME}
-            include/${PROJECT_NAME}/k4a_driver.hpp
-            src/${PROJECT_NAME}/k4a_driver.cpp)
+            include/${PROJECT_NAME}/k4a_driver.ros1.hpp
+            src/${PROJECT_NAME}/k4a_driver.ros1.cpp)
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
 
-add_executable(k4a_driver_node src/k4a_driver_node.cpp)
+add_executable(k4a_driver_node src/k4a_driver_node.ros1.cpp)
 add_dependencies(k4a_driver_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(k4a_driver_node
                       ${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
