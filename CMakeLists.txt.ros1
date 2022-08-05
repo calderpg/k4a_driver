@@ -49,8 +49,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
 
 add_executable(${PROJECT_NAME}_node src/k4a_driver_node.ros1.cpp)
 add_dependencies(${PROJECT_NAME}_node ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_node
-                      ${PROJECT_NAME} ${catkin_LIBRARIES} k4a::k4a)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
