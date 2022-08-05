@@ -384,8 +384,8 @@ void K4ACamera::Loop()
           pointcloud_message.header.stamp = capture_time;
           pointcloud_message.header.frame_id =
               camera_to_depth_transform_.child_frame_id;
-          pointcloud_message.height = depth_height;
-          pointcloud_message.width = depth_width;
+          pointcloud_message.height = static_cast<uint32_t>(depth_height);
+          pointcloud_message.width = static_cast<uint32_t>(depth_width);
           pointcloud_message.is_bigendian = false;
           pointcloud_message.is_dense = true;
           pointcloud_message.point_step =
