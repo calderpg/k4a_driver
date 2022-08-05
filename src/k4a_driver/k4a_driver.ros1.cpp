@@ -1,4 +1,4 @@
-#include <k4a_driver/k4a_driver.hpp>
+#include <k4a_driver/k4a_driver.ros1.hpp>
 
 #include <cstdint>
 #include <cstring>
