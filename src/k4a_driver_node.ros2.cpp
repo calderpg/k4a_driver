@@ -16,10 +16,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("k4a_driver_node");
   // Load parameters
-  const std::string tf_topic =
-      node->declare_parameter("~/tf_topic", "/tf");
-  const std::string camera_name =
-      node->declare_parameter("~/camera_name", "k4a");
+  const std::string tf_topic = node->declare_parameter("tf_topic", "/tf");
+  const std::string camera_name = node->declare_parameter("camera_name", "k4a");
   const int32_t device_number =
       int64_to_int32(node->declare_parameter("device_number", 0));
   // Note that roscpp does not parse numerical strings passed as arg params into
