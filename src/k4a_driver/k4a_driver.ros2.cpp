@@ -274,6 +274,7 @@ void K4ACamera::Loop()
       == K4A_RESULT_SUCCEEDED)
   {
     ScopedK4AImage transformed_color_image;
+    ScopedK4AImage transformed_depth_image;
     ScopedK4AImage point_cloud_image;
     int previous_depth_width = -1;
     int previous_depth_height = -1;
@@ -311,6 +312,14 @@ void K4ACamera::Loop()
               k4a_image_get_buffer(color_image.Get());
           std::memcpy(ros_color_image.data.data(), color_image_buffer,
                       ros_color_image.data.size());
+          // Transform the depth image into the color frame
+          if (k4a_transformation_depth_image_to_color_camera(
+                  transformation_, depth_image.Get(),
+                  transformed_depth_image.Get()) != K4A_RESULT_SUCCEEDED) {
+            throw std::runtime_error(
+                "Failed to transform depth image to color camera");
+          }
+          // ros_depth_image is the transformed depth image in the color frame.
           sensor_msgs::msg::Image ros_depth_image;
           ros_depth_image.header.stamp = capture_time;
           ros_depth_image.header.frame_id =
@@ -323,8 +332,8 @@ void K4ACamera::Loop()
               ros_depth_image.width * static_cast<uint32_t>(depth_pixel_size);
           ros_depth_image.data.resize(
               ros_depth_image.step * ros_depth_image.height, 0x00);
-          const uint8_t* depth_image_buffer =
-              k4a_image_get_buffer(depth_image.Get());
+          const uint8_t *depth_image_buffer =
+              k4a_image_get_buffer(transformed_depth_image.Get());
           std::memcpy(ros_depth_image.data.data(), depth_image_buffer,
                       ros_depth_image.data.size());
           // Check if the depth image is the same size as allocated
