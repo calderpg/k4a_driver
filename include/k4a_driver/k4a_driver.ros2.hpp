@@ -40,6 +40,7 @@ private:
   void LoadCameraIntrinsics();
 
   rclcpp::Node::SharedPtr node_;
+  rclcpp::executors::SingleThreadedExecutor executor_;
   image_transport::ImageTransport it_;
   std::string camera_name_;
   k4a_device_configuration_t device_configuration_;

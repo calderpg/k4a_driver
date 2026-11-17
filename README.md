@@ -17,7 +17,7 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097d", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097e", MODE="0666"
 ```
 
-3. Install ROS 2 Humble+
+3. Install ROS 2 Jazzy+
 
 ## Run
 
