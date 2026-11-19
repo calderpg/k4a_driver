@@ -17,7 +17,7 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097d", MODE="0666"
 SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="097e", MODE="0666"
 ```
 
-3. Install ROS 1 Melodic+ _or_ ROS 2 Galactic+
+3. Install ROS 1 Melodic+ _or_ ROS 2 Jazzy+
 
 4. Symlink the corresponding `CMakeLists.txt` and `package.xml` for the ROS
 distribution you are using:
@@ -29,7 +29,7 @@ ln -sT CMakeLists.txt.ros1 CMakeLists.txt
 ln -sT package.xml.ros1 package.xml
 ```
 
-*For ROS 2 Galactic+*
+*For ROS 2 Jazzy+*
 ```sh
 cd ~/ws/src/k4a_driver
 ln -sT CMakeLists.txt.ros2 CMakeLists.txt

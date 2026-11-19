@@ -21,6 +21,18 @@ namespace k4a_driver
 {
 namespace
 {
+// Lyrical's image_transport deprecates the Node::SharedPtr constructor in
+// favor of one taking node interfaces, which Jazzy's doesn't have.
+image_transport::ImageTransport MakeImageTransport(
+    const rclcpp::Node::SharedPtr& node)
+{
+#if __has_include(<image_transport/node_interfaces.hpp>)
+  return image_transport::ImageTransport(*node);
+#else
+  return image_transport::ImageTransport(node);
+#endif
+}
+
 geometry_msgs::msg::TransformStamped ExtrinsicsToTransformStamped(
     const k4a_calibration_extrinsics_t& extrinsics,
     const std::string& source_frame_name, const std::string& target_frame_name)
@@ -172,8 +184,8 @@ K4ACamera::K4ACamera(
     rclcpp::Node::SharedPtr node, const std::string& tf_topic,
     const std::string& camera_name, const int32_t device_number,
     const k4a_device_configuration_t& device_configuration)
-    : node_(node), it_(node_), camera_name_(camera_name),
-      device_configuration_(device_configuration)
+    : node_(node), it_(MakeImageTransport(node_)),
+      camera_name_(camera_name), device_configuration_(device_configuration)
 {
   // Open device
   const uint32_t device_count = k4a_device_get_installed_count();
@@ -206,8 +218,8 @@ K4ACamera::K4ACamera(
     rclcpp::Node::SharedPtr node, const std::string& tf_topic,
     const std::string& camera_name, const std::string& serial_number,
     const k4a_device_configuration_t& device_configuration)
-    : node_(node), it_(node_), camera_name_(camera_name),
-      device_configuration_(device_configuration)
+    : node_(node), it_(MakeImageTransport(node_)),
+      camera_name_(camera_name), device_configuration_(device_configuration)
 {
   // Open device
   const uint32_t device_count = k4a_device_get_installed_count();
@@ -515,7 +527,7 @@ void K4ACamera::Loop()
       {
         throw std::runtime_error("Failed to read capture");
       }
-      rclcpp::spin_some(node_);
+      executor_.spin_some();
     }
   }
   else
@@ -542,6 +554,7 @@ std::string K4ACamera::GetSerialNumber(const k4a_device_t device)
 
 void K4ACamera::Initialize(const std::string& tf_topic)
 {
+  executor_.add_node(node_);
   LoadHardwareInformation();
   LoadCameraIntrinsics();
   pointcloud_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>(
